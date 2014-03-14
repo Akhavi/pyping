@@ -1,0 +1,104 @@
+#!/usr/bin/env python
+# coding: utf-8
+import pyping
+import sys
+import getopt
+from clint.textui import indent, puts
+
+debug = False
+
+def usage():
+	with indent(1, quote=' '):
+		puts('Usage: pyping [destination] [options]')
+		print
+		puts('Options')
+		with indent(2, quote=' '):
+			puts('--timeout, -t     Set timeout in ms (Default: 1000)')
+			puts('--size, -s        Set package size in data bytes (Default: 55)')
+			puts('--count, -c       Set ping count (Default: 3)')
+			puts('--udp             Send ping via Udp (no-root needed)')
+		print
+	sys.exit(0)
+
+if __name__ == '__main__':
+	try:
+		opts, args = getopt.gnu_getopt(sys.argv[1:], 'c:t:s:h', ['count=', 'timeout=', 'size=', 'help', 'udp'])
+	except getopt.GetoptError as err:
+		print(err)
+		usage()
+
+	if not args:
+		usage()
+			
+	if len(args) >= 2:
+		print('Conflict between: %s.' % ', '.join(args))
+		usage()
+
+	flags = {}
+	for flag_group in opts:
+		flags[flag_group[0]] = list(flag_group[1:])
+
+	# Default values
+	timeout = 1000
+	count = 3
+	packet_size = 55
+
+	udp = True
+
+	# Timeout
+	if '--timeout' in flags.keys():
+		if flags['--timeout']:
+			try:
+				timeout = int(flags['--timeout'][0])
+			except ValueError:
+				print(' Error: --timeout must be integer')
+				usage()
+	if '-t' in flags.keys():
+		if flags['-t']:
+			try:
+				timeout = int(flags['-t'][0])
+			except ValueError:
+				print(' Error: -t must be integer')
+				usage()
+
+	# Count
+	if '--count' in flags.keys():
+		if flags['--count']:
+			try:
+				count = int(flags['--count'][0])
+			except ValueError:
+				print(' Error: --count must be integer')
+				usage()
+	if '-c' in flags.keys():
+		if flags['-c']:
+			try:
+				count = int(flags['-c'][0])
+			except ValueError:
+				print(' Error: -c must be integer')
+				usage()
+	# Packet size
+	if '--size' in flags.keys():
+		if flags['--size']:
+			try:
+				packet_size = int(flags['--size'][0])
+			except ValueError:
+				print(' Error: --size must be integer')
+				usage()
+	if '-s' in flags.keys():
+		if flags['-s']:
+			try:
+				packet_size = int(flags['-s'][0])
+			except ValueError:
+				print(' Error: -s must be integer')
+				usage()
+
+	destination = args[0]
+
+	if debug:
+		print(flags)
+		print(opts)
+		print(args)
+		print(timeout)
+		print(udp)
+
+	pyping.ping(destination, timeout=timeout, packet_size=packet_size, count=count, quiet_output=False, udp=udp)
